@@ -69,6 +69,7 @@ exports.flatten = function (lst) {
 }
 
 exports.callAll = function (hook_name, args) {
+  console.log(hook_name);
   if (!args) args = {};
   if (exports.plugins.hooks[hook_name] === undefined) return [];
   return _.flatten(_.map(exports.plugins.hooks[hook_name], function (hook) {

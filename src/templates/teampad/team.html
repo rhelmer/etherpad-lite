@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= teamInfo.name %></title>
+  </head>
+  Pads belonging to this team:
+  <ul>
+    <% for (var i=0; i < teamInfo.pads.length; i++) { %>
+    <li><a href="<%= teamInfo.name %>/<%= teamInfo.pads[i] %>"><%= teamInfo.pads[i] %></a></li>
+    <% } %>
+  </ul>
+  <form action="/teampad/createpad" method="post">
+    Create pad: <input type="text">
+    <input name="teamname" type="hidden" value="<%= teamInfo.name %>">
+    <input name="padname" type="submit">
+  </form>
+  Authors belonging to this team:
+  <ul>
+    <% for (var i=0; i < teamInfo.authors.length; i++) { %>
+    <li><%= teamInfo.authors[i] %></li>
+    <% } %>
+  </ul>
+  <form action="/teampad/addauthor" method="post">
+    Add user to team: <input type="text">
+    <input name="teamname" type="hidden" value="<%= teamInfo.name %>">
+    <input name="authorname" type="submit">
+  </form>
+</html>

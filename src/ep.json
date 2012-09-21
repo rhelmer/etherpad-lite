@@ -15,6 +15,8 @@
     { "name": "socketio", "hooks": { "expressCreateServer": "ep_etherpad-lite/node/hooks/express/socketio:expressCreateServer" } },
     { "name": "adminplugins", "hooks": {
       "expressCreateServer": "ep_etherpad-lite/node/hooks/express/adminplugins:expressCreateServer",
-      "socketio": "ep_etherpad-lite/node/hooks/express/adminplugins:socketio" } }
+      "socketio": "ep_etherpad-lite/node/hooks/express/adminplugins:socketio" } },
+    { "name": "teampad", "hooks": {
+      "expressCreateServer": "ep_etherpad-lite/node/hooks/express/teampad:expressCreateServer" }}
   ]
 }
