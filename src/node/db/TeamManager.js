@@ -1,5 +1,5 @@
 /**
- * The Group Manager provides functions to manage groups in the database
+ * The Team Manager provides functions to manage teams in the database
  */
 
 /*
@@ -83,25 +83,25 @@ exports.createTeam = function(teamName, pads, authors, admins, callback)
   });
 }
 
-exports.createGroupPad = function(groupID, padName, text, callback)
+exports.createTeamPad = function(teamName, teamID, padName, text, callback)
 {
   //create the padID
-  var padID = groupID + "$" + padName;
+  var padID = teamName + "+" + padName;
 
   async.series([
-    //ensure group exists 
+    //ensure team exists 
     function (callback)
     {
-      exports.doesGroupExist(groupID, function(err, exists)
+      exports.doesTeamExist(teamID, function(err, exists)
       {
         if(ERR(err, callback)) return;
         
-        //group does not exist
+        //team does not exist
         if(exists == false)
         {
-          callback(new customError("groupID does not exist","apierror"));
+          callback(new customError("teamID does not exist","apierror"));
         }
-        //group exists, everything is fine
+        //team exists, everything is fine
         else
         {
           callback();
@@ -130,22 +130,30 @@ exports.createGroupPad = function(groupID, padName, text, callback)
     //create the pad
     function (callback)
     {
+      console.log('text is: ' + text);
       padManager.getPad(padID, text, function(err)
       {
         if(ERR(err, callback)) return;
         callback();
       });
     },
-    //create an entry in the group for this pad
+    //add to DB
     function (callback)
     {
-      db.setSub("group:" + groupID, ["pads", padID], 1);
+      db.get("team:" + teamID, function(err, result)
+      {
+        if(ERR(err, callback)) return;
+
+        result.pads.push(padID);
+        db.set('team:' + teamID, result);
+      });
       callback();
     }
   ], function(err)
   {
     if(ERR(err, callback)) return;
-    callback(null, {padID: padID});
+    //console.log(callback);
+    //callback(null, {padID: padID});
   });
 }
 

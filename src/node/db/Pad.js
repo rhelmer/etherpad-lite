@@ -337,11 +337,15 @@ Pad.prototype.getLastChatMessages = function getLastChatMessages(count, callback
 Pad.prototype.init = function init(text, callback) {
   var _this = this;
 
+  console.log('text from deep inside: ' + text);
+
   //replace text with default text if text isn't set
   if(text == null)
   {
     text = settings.defaultPadText;
   }
+
+  console.log('text is still: ' + text);
 
   //try to load the pad
   db.get("pad:"+this.id, function(err, value)
@@ -363,6 +367,7 @@ Pad.prototype.init = function init(text, callback) {
     //this pad doesn't exist, so create it
     else
     {
+      console.log('clean text is: ' +  exports.cleanText(text));
       var firstChangeset = Changeset.makeSplice("\n", 0, 0, exports.cleanText(text));
 
       _this.appendRevision(firstChangeset, '');

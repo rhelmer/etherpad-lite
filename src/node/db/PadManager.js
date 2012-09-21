@@ -54,6 +54,7 @@ var padIdTransforms = [
  */
 exports.getPad = function(id, text, callback)
 {    
+  console.log('start of getPad: ' + text);
   //check if this is a valid padId
   if(!exports.isValidPadId(id))
   {

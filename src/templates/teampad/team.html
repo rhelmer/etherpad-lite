@@ -6,13 +6,14 @@
   Pads belonging to this team:
   <ul>
     <% for (var i=0; i < teamInfo.pads.length; i++) { %>
-    <li><a href="<%= teamInfo.name %>/<%= teamInfo.pads[i] %>"><%= teamInfo.pads[i] %></a></li>
+    <li><a href="/p/<%= teamInfo.pads[i] %>"><%= teamInfo.pads[i] %></a></li>
     <% } %>
   </ul>
   <form action="/teampad/createpad" method="post">
-    Create pad: <input type="text">
+    Create pad: <input name="padname" type="text">
     <input name="teamname" type="hidden" value="<%= teamInfo.name %>">
-    <input name="padname" type="submit">
+    <input name="teamID" type="hidden" value="<%= teamInfo.teamID %>">
+    <input type="submit">
   </form>
   Authors belonging to this team:
   <ul>
@@ -21,8 +22,9 @@
     <% } %>
   </ul>
   <form action="/teampad/addauthor" method="post">
-    Add user to team: <input type="text">
+    Add user to team: <input name="authorname" type="text">
     <input name="teamname" type="hidden" value="<%= teamInfo.name %>">
-    <input name="authorname" type="submit">
+    <input name="teamID" type="hidden" value="<%= teamInfo.teamID %>">
+    <input type="submit">
   </form>
 </html>
