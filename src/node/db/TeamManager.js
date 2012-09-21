@@ -152,8 +152,8 @@ exports.createTeamPad = function(teamName, teamID, padName, text, callback)
   ], function(err)
   {
     if(ERR(err, callback)) return;
-    //console.log(callback);
-    //callback(null, {padID: padID});
+    console.log(callback);
+    callback(null, {padID: padID});
   });
 }
 
