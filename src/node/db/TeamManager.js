@@ -86,7 +86,7 @@ exports.createTeam = function(teamName, pads, authors, admins, callback)
 exports.createTeamPad = function(teamName, teamID, padName, text, callback)
 {
   //create the padID
-  var padID = teamName + "+" + padName;
+  var padID = teamID + "+" + padName;
 
   async.series([
     //ensure team exists 
@@ -130,10 +130,12 @@ exports.createTeamPad = function(teamName, teamID, padName, text, callback)
     //create the pad
     function (callback)
     {
-      console.log('text is: ' + text);
-      padManager.getPad(padID, text, function(err)
+      padManager.getPad(padID, text, function(err, pad)
       {
         if(ERR(err, callback)) return;
+
+        pad.setTeamStatus(true);
+     
         callback();
       });
     },
@@ -152,7 +154,6 @@ exports.createTeamPad = function(teamName, teamID, padName, text, callback)
   ], function(err)
   {
     if(ERR(err, callback)) return;
-    console.log(callback);
     callback(null, {padID: padID});
   });
 }

@@ -54,7 +54,6 @@ var padIdTransforms = [
  */
 exports.getPad = function(id, text, callback)
 {    
-  console.log('start of getPad: ' + text);
   //check if this is a valid padId
   if(!exports.isValidPadId(id))
   {
@@ -169,4 +168,19 @@ exports.unloadPad = function(padId)
 {
   if(globalPads.get(padId))
     globalPads.remove(padId);
+}
+
+//checks if a pad is a "team pad"
+exports.isTeamPad = function(padId)
+{
+  db.get("pad:"+padId, function(err, value)
+  {
+    if(value != null && value.atext && value.teampad){
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  });
 }

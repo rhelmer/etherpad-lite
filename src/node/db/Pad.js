@@ -37,6 +37,7 @@ var Pad = function Pad(id) {
   this.head = -1;
   this.chatHead = -1;
   this.publicStatus = false;
+  this.teamStatus = false;
   this.passwordHash = null;
   this.id = id;
   this.savedRevisions = [];
@@ -337,15 +338,11 @@ Pad.prototype.getLastChatMessages = function getLastChatMessages(count, callback
 Pad.prototype.init = function init(text, callback) {
   var _this = this;
 
-  console.log('text from deep inside: ' + text);
-
   //replace text with default text if text isn't set
   if(text == null)
   {
     text = settings.defaultPadText;
   }
-
-  console.log('text is still: ' + text);
 
   //try to load the pad
   db.get("pad:"+this.id, function(err, value)
@@ -367,7 +364,6 @@ Pad.prototype.init = function init(text, callback) {
     //this pad doesn't exist, so create it
     else
     {
-      console.log('clean text is: ' +  exports.cleanText(text));
       var firstChangeset = Changeset.makeSplice("\n", 0, 0, exports.cleanText(text));
 
       _this.appendRevision(firstChangeset, '');
@@ -522,6 +518,15 @@ Pad.prototype.addSavedRevision = function addSavedRevision(revNum, savedById, la
 
 Pad.prototype.getSavedRevisions = function getSavedRevisions() {
   return this.savedRevisions;
+};
+
+Pad.prototype.getTeamStatus = function getTeamStatus() {
+  return this.teamStatus;
+};
+
+Pad.prototype.setTeamStatus = function setTeamStatus(teamStatus) {
+  this.teamStatus = teamStatus;
+  this.saveToDatabase();
 };
 
 /* Crypto helper methods */

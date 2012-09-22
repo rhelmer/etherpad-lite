@@ -6,7 +6,7 @@
   Pads belonging to this team:
   <ul>
     <% for (var i=0; i < teamInfo.pads.length; i++) { %>
-    <li><a href="/p/<%= teamInfo.pads[i] %>"><%= teamInfo.pads[i] %></a></li>
+    <li><a href="<%= teamInfo.name %>/<%= teamInfo.pads[i] %>"><%= teamInfo.pads[i] %></a></li>
     <% } %>
   </ul>
   <form action="/teampad/createpad" method="post">

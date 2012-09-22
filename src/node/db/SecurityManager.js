@@ -53,8 +53,8 @@ exports.checkAccess = function (padID, sessionCookie, token, password, callback)
   // a session is not required, so we'll check if it's a public pad
   else
   {
-    // it's not a group pad, means we can grant access
-    if(padID.indexOf("$") == -1)
+    // it's not a group or team pad, means we can grant access
+    if ((padID.indexOf("$") == -1) && (padID.indexOf("+") == -1))
     {
       //get author for this token
       authorManager.getAuthor4Token(token, function(err, author)
@@ -89,197 +89,204 @@ exports.checkAccess = function (padID, sessionCookie, token, password, callback)
       return;
     }
   }
-   
-  var groupID = padID.split("$")[0];
-  var padExists = false;
-  var validSession = false;
-  var sessionAuthor;
-  var tokenAuthor;
-  var isPublic;
-  var isPasswordProtected;
-  var passwordStatus = password == null ? "notGiven" : "wrong"; // notGiven, correct, wrong
 
-  async.series([
-    //get basic informations from the database 
-    function(callback)
-    {
-      async.parallel([
-        //does pad exists
-        function(callback)
-        {
-          padManager.doesPadExists(padID, function(err, exists)
+  if (padManager.isTeamPad(padID)) {
+    // TODO check session
+    //statusObject = {accessStatus: "deny"};
+    statusObject = {accessStatus: "grant"};
+    callback(null, statusObject);
+  } else {
+    var groupID = padID.split("$")[0];
+    var padExists = false;
+    var validSession = false;
+    var sessionAuthor;
+    var tokenAuthor;
+    var isPublic;
+    var isPasswordProtected;
+    var passwordStatus = password == null ? "notGiven" : "wrong"; // notGiven, correct, wrong
+  
+    async.series([
+      //get basic informations from the database 
+      function(callback)
+      {
+        async.parallel([
+          //does pad exists
+          function(callback)
           {
-            if(ERR(err, callback)) return;
-            padExists = exists;
-            callback();
-          });
-        },
-        //get information about all sessions contained in this cookie
-        function(callback)
-        {
-          if (!sessionCookie) {
-            callback();
-            return;
-          }
-          
-          var sessionIDs = sessionCookie.split(',');
-          async.forEach(sessionIDs, function(sessionID, callback) {
-            sessionManager.getSessionInfo(sessionID, function(err, sessionInfo) {
-              //skip session if it doesn't exist
-              if(err && err.message == "sessionID does not exist") return;
-              
+            padManager.doesPadExists(padID, function(err, exists)
+            {
               if(ERR(err, callback)) return;
-              
-              var now = Math.floor(new Date().getTime()/1000);
-              
-              //is it for this group?
-              if(sessionInfo.groupID != groupID) return;
-              
-              //is validUntil still ok?
-              if(sessionInfo.validUntil <= now) return;
-              
-              // There is a valid session
-              validSession = true;
-              sessionAuthor = sessionInfo.authorID;
-              
+              padExists = exists;
               callback();
             });
-          }, callback);
-        },
-        //get author for token
-        function(callback)
-        {
-          //get author for this token
-          authorManager.getAuthor4Token(token, function(err, author)
+          },
+          //get information about all sessions contained in this cookie
+          function(callback)
           {
-            if(ERR(err, callback)) return;
-            tokenAuthor = author;
-            callback();
-          });
-        }
-      ], callback);
-    },
-    //get more informations of this pad, if avaiable
-    function(callback)
-    {
-      //skip this if the pad doesn't exists
-      if(padExists == false) 
+            if (!sessionCookie) {
+              callback();
+              return;
+            }
+            
+            var sessionIDs = sessionCookie.split(',');
+            async.forEach(sessionIDs, function(sessionID, callback) {
+              sessionManager.getSessionInfo(sessionID, function(err, sessionInfo) {
+                //skip session if it doesn't exist
+                if(err && err.message == "sessionID does not exist") return;
+                
+                if(ERR(err, callback)) return;
+                
+                var now = Math.floor(new Date().getTime()/1000);
+                
+                //is it for this group?
+                if(sessionInfo.groupID != groupID) return;
+                
+                //is validUntil still ok?
+                if(sessionInfo.validUntil <= now) return;
+                
+                // There is a valid session
+                validSession = true;
+                sessionAuthor = sessionInfo.authorID;
+                
+                callback();
+              });
+            }, callback);
+          },
+          //get author for token
+          function(callback)
+          {
+            //get author for this token
+            authorManager.getAuthor4Token(token, function(err, author)
+            {
+              if(ERR(err, callback)) return;
+              tokenAuthor = author;
+              callback();
+            });
+          }
+        ], callback);
+      },
+      //get more informations of this pad, if avaiable
+      function(callback)
       {
-        callback();
-        return;
-      }
-      
-      padManager.getPad(padID, function(err, pad)
-      {
-        if(ERR(err, callback)) return;
-        
-        //is it a public pad?
-        isPublic = pad.getPublicStatus();
-        
-        //is it password protected?
-        isPasswordProtected = pad.isPasswordProtected();
-        
-        //is password correct?
-        if(isPasswordProtected && password && pad.isCorrectPassword(password))
+        //skip this if the pad doesn't exists
+        if(padExists == false) 
         {
-          passwordStatus = "correct";
+          callback();
+          return;
         }
         
-        callback();
-      });
-    },
-    function(callback)
-    {
-      //- a valid session for this group is avaible AND pad exists
-      if(validSession && padExists)
+        padManager.getPad(padID, function(err, pad)
+        {
+          if(ERR(err, callback)) return;
+          
+          //is it a public pad?
+          isPublic = pad.getPublicStatus();
+          
+          //is it password protected?
+          isPasswordProtected = pad.isPasswordProtected();
+          
+          //is password correct?
+          if(isPasswordProtected && password && pad.isCorrectPassword(password))
+          {
+            passwordStatus = "correct";
+          }
+          
+          callback();
+        });
+      },
+      function(callback)
       {
-        //- the pad is not password protected
-        if(!isPasswordProtected)
+        //- a valid session for this group is avaible AND pad exists
+        if(validSession && padExists)
+        {
+          //- the pad is not password protected
+          if(!isPasswordProtected)
+          {
+            //--> grant access
+            statusObject = {accessStatus: "grant", authorID: sessionAuthor};
+          }
+          //- the pad is password protected and password is correct
+          else if(isPasswordProtected && passwordStatus == "correct")
+          {
+            //--> grant access
+            statusObject = {accessStatus: "grant", authorID: sessionAuthor};
+          }
+          //- the pad is password protected but wrong password given
+          else if(isPasswordProtected && passwordStatus == "wrong")
+          {
+            //--> deny access, ask for new password and tell them that the password is wrong
+            statusObject = {accessStatus: "wrongPassword"};
+          }
+          //- the pad is password protected but no password given
+          else if(isPasswordProtected && passwordStatus == "notGiven")
+          {
+            //--> ask for password
+            statusObject = {accessStatus: "needPassword"};
+          }
+          else
+          {
+            throw new Error("Ops, something wrong happend");
+          }
+        } 
+        //- a valid session for this group avaible but pad doesn't exists
+        else if(validSession && !padExists)
         {
           //--> grant access
           statusObject = {accessStatus: "grant", authorID: sessionAuthor};
+          //--> deny access if user isn't allowed to create the pad
+          if(settings.editOnly) statusObject.accessStatus = "deny";
         }
-        //- the pad is password protected and password is correct
-        else if(isPasswordProtected && passwordStatus == "correct")
+        // there is no valid session avaiable AND pad exists
+        else if(!validSession && padExists)
         {
-          //--> grant access
-          statusObject = {accessStatus: "grant", authorID: sessionAuthor};
-        }
-        //- the pad is password protected but wrong password given
-        else if(isPasswordProtected && passwordStatus == "wrong")
-        {
-          //--> deny access, ask for new password and tell them that the password is wrong
-          statusObject = {accessStatus: "wrongPassword"};
-        }
-        //- the pad is password protected but no password given
-        else if(isPasswordProtected && passwordStatus == "notGiven")
-        {
-          //--> ask for password
-          statusObject = {accessStatus: "needPassword"};
-        }
+          //-- its public and not password protected
+          if(isPublic && !isPasswordProtected)
+          {
+            //--> grant access, with author of token
+            statusObject = {accessStatus: "grant", authorID: tokenAuthor};
+          }
+          //- its public and password protected and password is correct
+          else if(isPublic && isPasswordProtected && passwordStatus == "correct")
+          {
+            //--> grant access, with author of token
+            statusObject = {accessStatus: "grant", authorID: tokenAuthor};
+          }
+          //- its public and the pad is password protected but wrong password given 
+          else if(isPublic && isPasswordProtected && passwordStatus == "wrong")
+          {
+            //--> deny access, ask for new password and tell them that the password is wrong
+            statusObject = {accessStatus: "wrongPassword"};
+          }
+          //- its public and the pad is password protected but no password given
+          else if(isPublic && isPasswordProtected && passwordStatus == "notGiven")
+          {
+            //--> ask for password
+            statusObject = {accessStatus: "needPassword"};
+          }
+          //- its not public
+          else if(!isPublic)
+          {
+            //--> deny access
+            statusObject = {accessStatus: "deny"};
+          }
+          else
+          {
+            throw new Error("Ops, something wrong happend");
+          }
+        }    
+        // there is no valid session avaiable AND pad doesn't exists
         else
         {
-          throw new Error("Ops, something wrong happend");
+           //--> deny access
+           statusObject = {accessStatus: "deny"};
         }
-      } 
-      //- a valid session for this group avaible but pad doesn't exists
-      else if(validSession && !padExists)
-      {
-        //--> grant access
-        statusObject = {accessStatus: "grant", authorID: sessionAuthor};
-        //--> deny access if user isn't allowed to create the pad
-        if(settings.editOnly) statusObject.accessStatus = "deny";
+        
+        callback();
       }
-      // there is no valid session avaiable AND pad exists
-      else if(!validSession && padExists)
-      {
-        //-- its public and not password protected
-        if(isPublic && !isPasswordProtected)
-        {
-          //--> grant access, with author of token
-          statusObject = {accessStatus: "grant", authorID: tokenAuthor};
-        }
-        //- its public and password protected and password is correct
-        else if(isPublic && isPasswordProtected && passwordStatus == "correct")
-        {
-          //--> grant access, with author of token
-          statusObject = {accessStatus: "grant", authorID: tokenAuthor};
-        }
-        //- its public and the pad is password protected but wrong password given 
-        else if(isPublic && isPasswordProtected && passwordStatus == "wrong")
-        {
-          //--> deny access, ask for new password and tell them that the password is wrong
-          statusObject = {accessStatus: "wrongPassword"};
-        }
-        //- its public and the pad is password protected but no password given
-        else if(isPublic && isPasswordProtected && passwordStatus == "notGiven")
-        {
-          //--> ask for password
-          statusObject = {accessStatus: "needPassword"};
-        }
-        //- its not public
-        else if(!isPublic)
-        {
-          //--> deny access
-          statusObject = {accessStatus: "deny"};
-        }
-        else
-        {
-          throw new Error("Ops, something wrong happend");
-        }
-      }    
-      // there is no valid session avaiable AND pad doesn't exists
-      else
-      {
-         //--> deny access
-         statusObject = {accessStatus: "deny"};
-      }
-      
-      callback();
-    }
-  ], function(err)
-  {
-    if(ERR(err, callback)) return;
-    callback(null, statusObject);
-  });
+    ], function(err)
+    {
+      if(ERR(err, callback)) return;
+      callback(null, statusObject);
+    });
+  }
 }

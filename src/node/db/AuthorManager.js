@@ -150,7 +150,6 @@ exports.getAuthor = function (author, callback)
 exports.getAuthorName = function (authorID, callback)
 {
   db.getSub("globalAuthor:" + author, ["name"], callback);
-  console.log(authorID);
   db.getSub("globalAuthor:" + authorID, ["name"], function(err, authorName){
     if(ERR(err, callback)) return;
     callback(null, {authorName: authorName});
