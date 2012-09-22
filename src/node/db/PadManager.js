@@ -173,14 +173,17 @@ exports.unloadPad = function(padId)
 //checks if a pad is a "team pad"
 exports.isTeamPad = function(padId)
 {
+  var isTeamPad = false;
   db.get("pad:"+padId, function(err, value)
   {
-    if(value != null && value.atext && value.teampad){
-      return true;
+    if(value != null && value.atext && value.teamStatus){
+      isTeamPad = true;
     }
     else
     {
-      return false;
+      isTeamPad = false;
     }
   });
+
+  return isTeamPad;
 }

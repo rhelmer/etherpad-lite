@@ -1,10 +1,8 @@
 var express = require('express'),
     eejs = require('ep_etherpad-lite/node/eejs'),
     teamManager = require('ep_etherpad-lite/node/db/TeamManager'),
+    sessionManager = require('ep_etherpad-lite/node/db/SessionManager'),
     https = require('https');
-
-// TODO hardcoded for testing, really get from DB via session
-var currentUser = 'rhelmer@mozilla.com';
 
 exports.expressCreateServer = function (hook_name, args, cb) {
     args.app.use(express.bodyParser());
@@ -27,13 +25,21 @@ exports.expressCreateServer = function (hook_name, args, cb) {
             }
         }, function(vres) {
             var body = '';
-            var session_id = req.cookies.express_sid;
             vres.on('data', function(chunk) { body += chunk; });
             vres.on('end', function() {
                 try {
-                    username = JSON.parse(body).email;
-                    // TODO set up session
-                    console.log(username + ' logged in');
+                    account = JSON.parse(body).email;
+                    validUntil = JSON.parse(body).expires;
+                    console.log(body);
+                    var sessionID = req.cookies.express_sid;
+                    sessionManager.createVerifiedSession(
+                        sessionID, account, validUntil, function(err, result) {
+                            if (err) {
+                                console.log(err);
+                                return;
+                            }
+                        });
+                    console.log(account + ' logged in');
                 } catch(e) {
                     console.log(e);
                 }
@@ -45,7 +51,20 @@ exports.expressCreateServer = function (hook_name, args, cb) {
     });
 
     args.app.post('/teampad/createteam', function(req, res) {
-        // TODO check session
+        var sessionID = req.cookies.express_sid;
+        var currentUser = null;
+        var signedIn = false;
+
+        sessionManager.getSessionInfo(sessionID, function(err, result) {
+            if (err) {
+                console.log(err);
+                return;
+            } else {
+                currentUser = result.account;
+                signedIn = true;
+            }
+        });
+
 
         var teamName = req.param('teamname', null);
         teamManager.createTeam(teamName, [], [currentUser], [currentUser],
@@ -56,7 +75,20 @@ exports.expressCreateServer = function (hook_name, args, cb) {
     });
 
     args.app.post('/teampad/createpad', function(req, res) {
-        // TODO check session
+        var sessionID = req.cookies.express_sid;
+        var currentUser = null;
+        var signedIn = false;
+
+        sessionManager.getSessionInfo(sessionID, function(err, result) {
+            if (err) {
+                console.log(err);
+                return;
+            } else {
+                currentUser = result.account;
+                signedIn = true;
+            }
+        });
+
 
         var teamName = req.param('teamname', null);
         var teamID = req.param('teamID', null);
@@ -69,8 +101,20 @@ exports.expressCreateServer = function (hook_name, args, cb) {
     });
 
     args.app.post('/teampad/adduser', function(req, res) {
+        var sessionID = req.cookies.express_sid;
+        var currentUser = null;
+        var signedIn = false;
 
-        // TODO check session
+        sessionManager.getSessionInfo(sessionID, function(err, result) {
+            if (err) {
+                console.log(err);
+                return;
+            } else {
+                currentUser = result.account;
+                signedIn = true;
+            }
+        });
+
         var teamName = req.param('teamname', null);
         var userName = req.param('username', null);
         teamManager.addUserToTeam(teamName, userName,
@@ -81,18 +125,29 @@ exports.expressCreateServer = function (hook_name, args, cb) {
     });
 
     args.app.get('/teampad', function(req, res) { 
-        // TODO check session
-        var session_id = req.cookies.express_sid;
+        var sessionID = req.cookies.express_sid;
+        var currentUser = null;
+        var signedIn = false;
+
+        sessionManager.getSessionInfo(sessionID, function(err, result) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            currentUser = result.account;
+            signedIn = true;
+        });
+
         var teamsInfo = [];
 
-        // TODO an index for finding teams by author would make this
+        // TODO an index for finding teams by account would make this
         //      *way* faster and easier...
         teamManager.listAllTeams(function(err, teams) {
           for (var team in teams.teamIDs) {
               teamID = teams.teamIDs[team];
               teamManager.listInfo(teamID, function(err, info) {
-                  if (info.authors) {
-                      if (info.authors.indexOf(currentUser) != -1) {
+                  if (info.accounts) {
+                      if (info.accounts.indexOf(currentUser) != -1) {
                           teamsInfo.push(info); 
                       }
                   }
@@ -100,21 +155,33 @@ exports.expressCreateServer = function (hook_name, args, cb) {
           } 
           res.send(eejs.require('ep_etherpad-lite/templates/teampad/index.html',
                                 { teamsInfo: teamsInfo,
-                                  signedIn: true}));
+                                  signedIn: signedIn}));
         });
     });
 
     args.app.get('/teampad/:teamName', function(req, res) { 
-        // TODO check session
+        var sessionID = req.cookies.express_sid;
+        var currentUser = null;
+        var signedIn = false;
+
+        sessionManager.getSessionInfo(sessionID, function(err, result) {
+            if (err) {
+                console.log(err);
+            } else {
+                currentUser = result.account;
+                signedIn = true;
+            }
+        });
+
         var teamName = req.path.split('/')[2];
         var teamInfo = {
             pads: [],
-            authors: [],
+            accounts: [],
             name: [],
             teamID: []
         };
 
-        // TODO an index for finding pads/authors by team would make this
+        // TODO an index for finding pads/accounts by team would make this
         //      *way* faster and easier...
         teamManager.listAllTeams(function(err, teams) {
           for (var team in teams.teamIDs) {
@@ -132,12 +199,25 @@ exports.expressCreateServer = function (hook_name, args, cb) {
           console.log(teamInfo);
           res.send(eejs.require('ep_etherpad-lite/templates/teampad/team.html',
                                 {teamInfo: teamInfo,
-                                 signedIn: true}));
+                                 signedIn: false}));
         });
     });
 
     args.app.get('/teampad/:teamName/:padName', function(req, res) { 
-        // TODO check session
+        var sessionID = req.cookies.express_sid;
+        var currentUser = null;
+        var signedIn = false;
+
+        sessionManager.getSessionInfo(sessionID, function(err, result) {
+            if (err) {
+                console.log(err);
+                return;
+            } else {
+                currentUser = result.account;
+                signedIn = true;
+            }
+        });
+
         var padName = req.path.split('/')[3];
 
         res.send(eejs.require('ep_etherpad-lite/templates/teampad/pad.html'));

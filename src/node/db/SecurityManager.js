@@ -49,7 +49,20 @@ exports.checkAccess = function (padID, sessionCookie, token, password, callback)
       callback(null, {accessStatus: "deny"});
       return;
     }
+  } 
+  else if(padManager.isTeamPad(padID))
+  {
+    authorManager.getAuthor4Token(token, function(err, author)
+    {
+      if(ERR(err, callback)) return;
+
+      // TODO check session
+      // TODO figure out how to force authorID to match account name...
+      statusObject = {accessStatus: "grant", authorID: author};
+      callback(null, statusObject);
+    });
   }
+    
   // a session is not required, so we'll check if it's a public pad
   else
   {

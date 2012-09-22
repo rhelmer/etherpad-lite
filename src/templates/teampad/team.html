@@ -17,12 +17,12 @@
   </form>
   Authors belonging to this team:
   <ul>
-    <% for (var i=0; i < teamInfo.authors.length; i++) { %>
-    <li><%= teamInfo.authors[i] %></li>
+    <% for (var i=0; i < teamInfo.accounts.length; i++) { %>
+    <li><%= teamInfo.accounts[i] %></li>
     <% } %>
   </ul>
-  <form action="/teampad/addauthor" method="post">
-    Add user to team: <input name="authorname" type="text">
+  <form action="/teampad/addaccount" method="post">
+    Add user to team: <input name="accountname" type="text">
     <input name="teamname" type="hidden" value="<%= teamInfo.name %>">
     <input name="teamID" type="hidden" value="<%= teamInfo.teamID %>">
     <input type="submit">

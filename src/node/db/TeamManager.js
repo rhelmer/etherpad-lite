@@ -55,13 +55,13 @@ exports.doesTeamExist = function(teamID, callback)
   });
 }
 
-exports.createTeam = function(teamName, pads, authors, admins, callback)
+exports.createTeam = function(teamName, pads, accounts, admins, callback)
 {
   //search for non existing teamID
   var teamID = "t." + randomString(16);
 
   //create the team
-  db.set("team:" + teamID, {name: teamName, pads: pads, authors: authors,
+  db.set("team:" + teamID, {name: teamName, pads: pads, accounts: accounts,
                             admins: admins});
   
   //list the team
