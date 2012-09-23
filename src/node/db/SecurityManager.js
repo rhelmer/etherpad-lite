@@ -57,9 +57,18 @@ exports.checkAccess = function (padID, sessionCookie, token, password, callback)
       if(ERR(err, callback)) return;
 
       // TODO check session
-      // TODO figure out how to force authorID to match account name...
-      statusObject = {accessStatus: "grant", authorID: author};
-      callback(null, statusObject);
+      console.log('sessionCookie: ' + sessionCookie);
+      sessionManager.getSessionInfo(sessionCookie, function(err, result) {
+        if (err) {
+          statusObject = {accessStatus: "deny", authorID: author};
+          callback(null, statusObject);
+        } else {
+          // TODO figure out how to force authorID to match account name...
+          statusObject = {accessStatus: "grant", authorID: author};
+          callback(null, statusObject);
+        }
+      });
+
     });
   }
     
