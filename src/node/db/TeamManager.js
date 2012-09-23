@@ -86,7 +86,7 @@ exports.createTeam = function(teamName, pads, accounts, admins, callback)
 exports.createTeamPad = function(teamName, teamID, padName, text, callback)
 {
   //create the padID
-  var padID = teamID + "+" + padName;
+  var padID = teamName + "+" + padName;
 
   async.series([
     //ensure team exists 
