@@ -58,7 +58,6 @@ exports.expressCreateServer = function (hook_name, args, cb) {
         sessionManager.getSessionInfo(sessionID, function(err, result) {
             if (err) {
                 console.log(err);
-                return;
             } else {
                 currentUser = result.account;
                 signedIn = true;
@@ -82,7 +81,7 @@ exports.expressCreateServer = function (hook_name, args, cb) {
         sessionManager.getSessionInfo(sessionID, function(err, result) {
             if (err) {
                 console.log(err);
-                return;
+                res.redirect('/teampad');
             } else {
                 currentUser = result.account;
                 signedIn = true;
@@ -108,7 +107,6 @@ exports.expressCreateServer = function (hook_name, args, cb) {
         sessionManager.getSessionInfo(sessionID, function(err, result) {
             if (err) {
                 console.log(err);
-                return;
             } else {
                 currentUser = result.account;
                 signedIn = true;
@@ -132,10 +130,10 @@ exports.expressCreateServer = function (hook_name, args, cb) {
         sessionManager.getSessionInfo(sessionID, function(err, result) {
             if (err) {
                 console.log(err);
-                return;
+            } else {
+                currentUser = result.account;
+                signedIn = true;
             }
-            currentUser = result.account;
-            signedIn = true;
         });
 
         var teamsInfo = [];
@@ -167,39 +165,40 @@ exports.expressCreateServer = function (hook_name, args, cb) {
         sessionManager.getSessionInfo(sessionID, function(err, result) {
             if (err) {
                 console.log(err);
+                res.redirect('/teampad');
             } else {
                 currentUser = result.account;
                 signedIn = true;
+
+                var teamName = req.path.split('/')[2];
+                var teamInfo = {
+                    pads: [],
+                    accounts: [],
+                    name: [],
+                    teamID: []
+                };
+
+                // TODO an index for finding pads/accounts by team would make this
+                //      *way* faster and easier...
+                teamManager.listAllTeams(function(err, teams) {
+                  for (var team in teams.teamIDs) {
+                      teamID = teams.teamIDs[team];
+                      teamManager.listInfo(teamID, function(err, info) {
+                          if (info.name) {
+                              if (teamName === info.name) {
+                                  teamInfo = info;
+                                  teamInfo.teamID = teamID;
+                              }
+                          }
+                      });
+                  } 
+        
+                  console.log(teamInfo);
+                  res.send(eejs.require('ep_etherpad-lite/templates/teampad/team.html',
+                                        {teamInfo: teamInfo,
+                                         signedIn: false}));
+                });
             }
-        });
-
-        var teamName = req.path.split('/')[2];
-        var teamInfo = {
-            pads: [],
-            accounts: [],
-            name: [],
-            teamID: []
-        };
-
-        // TODO an index for finding pads/accounts by team would make this
-        //      *way* faster and easier...
-        teamManager.listAllTeams(function(err, teams) {
-          for (var team in teams.teamIDs) {
-              teamID = teams.teamIDs[team];
-              teamManager.listInfo(teamID, function(err, info) {
-                  if (info.name) {
-                      if (teamName === info.name) {
-                          teamInfo = info;
-                          teamInfo.teamID = teamID;
-                      }
-                  }
-              });
-          } 
-
-          console.log(teamInfo);
-          res.send(eejs.require('ep_etherpad-lite/templates/teampad/team.html',
-                                {teamInfo: teamInfo,
-                                 signedIn: false}));
         });
     });
 
@@ -211,7 +210,7 @@ exports.expressCreateServer = function (hook_name, args, cb) {
         sessionManager.getSessionInfo(sessionID, function(err, result) {
             if (err) {
                 console.log(err);
-                return;
+                res.redirect('/teampad');
             } else {
                 currentUser = result.account;
                 signedIn = true;

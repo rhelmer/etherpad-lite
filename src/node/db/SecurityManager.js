@@ -60,7 +60,7 @@ exports.checkAccess = function (padID, sessionCookie, token, password, callback)
       console.log('sessionCookie: ' + sessionCookie);
       sessionManager.getSessionInfo(sessionCookie, function(err, result) {
         if (err) {
-          statusObject = {accessStatus: "deny", authorID: author};
+          statusObject = {accessStatus: "denyTeamPad", authorID: author};
           callback(null, statusObject);
         } else {
           // TODO figure out how to force authorID to match account name...

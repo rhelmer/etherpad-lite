@@ -309,6 +309,11 @@ function handshake()
                                     "<input id='passwordinput' type='password' name='password'>"+
                                     "<button type='button' onclick=\"" + padutils.escapeHtml('require('+JSON.stringify(module.id)+").savePassword()") + "\">ok</button>");
       }
+      else if(obj.accessStatus == "denyTeamPad")
+      {
+        $("#editorloadingbox").html("<b>This is a Team pad</b><br>" +
+                                    "<a href='/teampad'>Manage teampads</a>");
+      }
     }
     
     //if we haven't recieved the clientVars yet, then this message should it be
