@@ -181,3 +181,31 @@ exports.listInfo = function(teamID, callback)
     }
   });
 }
+
+exports.addAccountToTeam = function(teamID, account, callback)
+{
+  exports.doesTeamExist(teamID, function(err, exists)
+  {
+    if(ERR(err, callback)) return;
+    
+    //team does not exist
+    if(exists == false)
+    {
+      console.log('debug1: ' + teamID);
+      callback(new customError("teamID does not exist","apierror"));
+    }
+    //team exists, let's get the info
+    else
+    {
+      db.get("team:" + teamID, function(err, result)
+      {
+        if(ERR(err, callback)) return;
+        
+        result.accounts.push(account);
+        console.log('setting team to: ' + result);
+        db.set("team:" + teamID, result);
+        callback(null, result);
+      });
+    }
+  });
+}

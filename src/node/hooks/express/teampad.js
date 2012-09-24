@@ -1,4 +1,5 @@
 var express = require('express'),
+    async = require('async'),
     eejs = require('ep_etherpad-lite/node/eejs'),
     teamManager = require('ep_etherpad-lite/node/db/TeamManager'),
     sessionManager = require('ep_etherpad-lite/node/db/SessionManager'),
@@ -99,27 +100,30 @@ exports.expressCreateServer = function (hook_name, args, cb) {
     res.redirect('/teampad/' + teamName);
   });
 
-  args.app.post('/teampad/adduser', function(req, res) {
+  args.app.post('/teampad/addaccount', function(req, res) {
     var sessionID = req.cookies.express_sid;
     var currentUser = null;
     var signedIn = false;
 
-    sessionManager.getSessionInfo(sessionID, function(err, result) {
-      if (err) {
-        console.log(err);
-      } else {
+    async.series([
+      function(callback) {
+        sessionManager.getSessionInfo(sessionID, callback);
+      },
+      function(result, callback) {
         currentUser = result.account;
-        signedIn = true;
-      }
-    });
 
-    var teamName = req.param('teamname', null);
-    var userName = req.param('username', null);
-    teamManager.addUserToTeam(teamName, userName,
-      function(err, teamID) {
-        console.log(userName+ ' added to ' + teamName);
-      });
-    res.redirect('/teampad');
+        var teamID = req.param('teamID', null);
+        var teamName = req.param('teamname', null);
+        var account = req.param('accountname', null);
+        console.log('teamID: ' + teamID);
+        teamManager.addAccountToTeam(teamID, account, function(err, team) {
+          console.log(account+ ' added to ' + teamID);
+        });
+        res.redirect('/teampad/' + teamName);
+      },
+    ], function(err) {
+      console.log(err);
+    });
   });
 
   args.app.get('/teampad', function(req, res) { 
