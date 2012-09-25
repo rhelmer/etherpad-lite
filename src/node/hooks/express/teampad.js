@@ -190,6 +190,8 @@ exports.expressCreateServer = function (hook_name, args, cb) {
           }
         });
       } 
+      res.header('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
+
       res.send(eejs.require('ep_etherpad-lite/templates/teampad/index.html',
                 { teamsInfo: teamsInfo,
                   signedIn: signedIn}));
@@ -232,7 +234,8 @@ exports.expressCreateServer = function (hook_name, args, cb) {
             });
           } 
     
-          console.log(teamInfo);
+          res.header('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
+
           res.send(eejs.require('ep_etherpad-lite/templates/teampad/team.html',
                     {teamInfo: teamInfo,
                      signedIn: false}));
@@ -258,6 +261,8 @@ exports.expressCreateServer = function (hook_name, args, cb) {
     });
 
     var padName = req.path.split('/')[3];
+
+    res.header('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
 
     res.send(eejs.require('ep_etherpad-lite/templates/teampad/pad.html'));
   });
