@@ -1,0 +1,11 @@
+{
+  "name": "etherpad-lite",
+  "version": "0.0.1",
+  "dependencies": {
+    "ep_etherpad-lite": "1.1.2"
+  },
+  "engines": {
+    "node" : ">=0.6.0",
+    "npm"  : ">=1.0"
+  }
+}
