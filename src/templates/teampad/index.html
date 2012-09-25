@@ -11,46 +11,46 @@
   <% if (signedIn) { %>
     <div class="separator"></div>
 
-  <h2>Teams you are a member of</h2>
-  <ul>
-    <% if (teamsInfo.length == 0) { %>
-    None yet!
-    <% } %>
-    <% for (var i=0; i < teamsInfo.length; i++) { %>
-    <li>
-      <a href="/teampad/<%= teamsInfo[i].name %>"><%= teamsInfo[i].name %></a>
-    </li>
-    <% } %>
-  </ul>
-    <div class="separator"></div>
-  <form action="/teampad/createteam" method="post">
-    <h2>Create new team:<h2>
-    <input name="teamname" placeholder="Team name" type="text">
-    <input type="submit" value="Create">
-  </form>
-
-  <% } else { %>
-
-  <span>Sign in to create, manage and see your team pads &rarr;</span>
-
-  <form action="/teampad/verify" method="post" style="display:none;">
-    <input type="text" name="assertion"/>
-  </form>
-
-  <img src="https://browserid.org/i/sign_in_red.png" id="browserid"/>
-  <script src="https://login.persona.org/include.js" type="text/javascript"></script>
-  <script>
-    $('#browserid').click(function(){
-      navigator.id.getVerifiedEmail(function(assertion) {
-        if (assertion) {
-          $('input').val(assertion);
-          $('form').submit();
-        } else {
-          location.reload();
-        }
+    <h2>Teams you are a member of</h2>
+    <ul>
+      <% if (teamsInfo.length == 0) { %>
+      None yet!
+      <% } %>
+      <% for (var i=0; i < teamsInfo.length; i++) { %>
+      <li>
+        <a href="/teampad/<%= teamsInfo[i].name %>"><%= teamsInfo[i].name %></a>
+      </li>
+      <% } %>
+    </ul>
+      <div class="separator"></div>
+    <form action="/teampad/createteam" method="post">
+      <h2>Create new team:<h2>
+      <input name="teamname" placeholder="Team name" type="text">
+      <input type="submit" value="Create">
+    </form>
+  
+    <% } else { %>
+  
+    <span>Sign in to create, manage and see your team pads &rarr;</span>
+  
+    <form action="/teampad/verify" method="post" style="display:none;">
+      <input type="text" name="assertion"/>
+    </form>
+  
+    <img src="https://browserid.org/i/sign_in_red.png" id="browserid"/>
+    <script src="https://login.persona.org/include.js" type="text/javascript"></script>
+    <script>
+      $('#browserid').click(function(){
+        navigator.id.getVerifiedEmail(function(assertion) {
+          if (assertion) {
+            $('input').val(assertion);
+            $('form').submit();
+          } else {
+            location.reload();
+          }
+        });
       });
-    });
-  </script>
-  <% } %>
+    </script>
+    <% } %>
   </div>
 </html>

@@ -5,37 +5,37 @@
     <link rel="stylesheet" href="../../static/css/teampad.css"> 
   </head>
   <div id="wrapper">
-  <h1>Etherpad Lite</h1>
-  <div class="separator"></div>
-  <h2>Pads belonging to this team:</h2>
-  <ul>
-    <% if (teamInfo.pads.length == 0) { %>
-    None yet!
-    <% } %>
-    <% for (var i=0; i < teamInfo.pads.length; i++) { %>
-    <li><a href="/p/<%= teamInfo.pads[i] %>"><%= teamInfo.pads[i] %></a></li>
-    <% } %>
-  </ul>
-  <form action="/teampad/createpad" method="post">
-    <h2>Create pad:</h2>
-    <input name="padname" placeholder="Pad name" type="text">
-    <input name="teamname" type="hidden" value="<%= teamInfo.name %>">
-    <input name="teamID" type="hidden" value="<%= teamInfo.teamID %>">
-    <input type="submit" value="Create">
-  </form>
-  <div class="separator"></div>
-  <h2>Authors belonging to this team:</h2>
-  <ul>
-    <% for (var i=0; i < teamInfo.accounts.length; i++) { %>
-    <li><%= teamInfo.accounts[i] %></li>
-    <% } %>
-  </ul>
-  <form action="/teampad/addaccount" method="post">
-    <h2>Add account to team:</h2>
-    <input name="accountname" placeholder="Account name" type="text">
-    <input name="teamname" type="hidden" value="<%= teamInfo.name %>">
-    <input name="teamID" type="hidden" value="<%= teamInfo.teamID %>">
-    <input type="submit" value="Add">
-  </form>
+    <h1>Etherpad Lite</h1>
+    <div class="separator"></div>
+    <h2>Pads belonging to this team:</h2>
+    <ul>
+      <% if (teamInfo.pads.length == 0) { %>
+      None yet!
+      <% } %>
+      <% for (var i=0; i < teamInfo.pads.length; i++) { %>
+      <li><a href="/p/<%= teamInfo.pads[i] %>"><%= teamInfo.pads[i] %></a></li>
+      <% } %>
+    </ul>
+    <form action="/teampad/createpad" method="post">
+      <h2>Create pad:</h2>
+      <input name="padname" placeholder="Pad name" type="text">
+      <input name="teamname" type="hidden" value="<%= teamInfo.name %>">
+      <input name="teamID" type="hidden" value="<%= teamInfo.teamID %>">
+      <input type="submit" value="Create">
+    </form>
+    <div class="separator"></div>
+    <h2>Authors belonging to this team:</h2>
+    <ul>
+      <% for (var i=0; i < teamInfo.accounts.length; i++) { %>
+      <li><%= teamInfo.accounts[i] %></li>
+      <% } %>
+    </ul>
+    <form action="/teampad/addaccount" method="post">
+      <h2>Add account to team:</h2>
+      <input name="accountname" placeholder="Account name" type="text">
+      <input name="teamname" type="hidden" value="<%= teamInfo.name %>">
+      <input name="teamID" type="hidden" value="<%= teamInfo.teamID %>">
+      <input type="submit" value="Add">
+    </form>
   </div>
 </html>
