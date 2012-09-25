@@ -137,7 +137,9 @@ exports.expressCreateServer = function (hook_name, args, cb) {
     var sessionID = req.cookies.express_sid,
         currentUser = null,
         signedIn = false,
+        teamName = null,
         teamID = req.param('teamID', null),
+        rawTeamName = req.param('teamname', null),
         account = req.param('accountname', null);
 
     async.waterfall([
@@ -146,13 +148,17 @@ exports.expressCreateServer = function (hook_name, args, cb) {
       },
       function(result, callback) {
         currentUser = result.account;
-        padManager.sanitizePadId(req.param('teamname', null), callback);
+        padManager.sanitizePadId(rawTeamName, function(teamName) {
+          callback(null, teamName);
+        });
       },
-      function(teamName, callback) {
+      function(result, callback) {
+        teamName = result;
         console.log('teamID: ' + teamID);
         teamManager.addAccountToTeam(teamID, account, callback);
       },
-      function(team, callback) {
+      function(result, callback) {
+        teamID = result;
         console.log(account+ ' added to ' + teamID);
         res.redirect('/teampad/' + teamName);
       },
