@@ -3,21 +3,30 @@
   <head>
     <title>Teampad</title>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="../../static/css/teampad.css"> 
   </head>
 
+  <div id="wrapper">
+    <h1>Etherpad Lite</h1>
   <% if (signedIn) { %>
+    <div class="separator"></div>
 
-  Teams you are a member of:
+  <h2>Teams you are a member of</h2>
   <ul>
+    <% if (teamsInfo.length == 0) { %>
+    None yet!
+    <% } %>
     <% for (var i=0; i < teamsInfo.length; i++) { %>
     <li>
       <a href="/teampad/<%= teamsInfo[i].name %>"><%= teamsInfo[i].name %></a>
     </li>
     <% } %>
   </ul>
+    <div class="separator"></div>
   <form action="/teampad/createteam" method="post">
-    Create team: <input name="teamname" type="text">
-    <input type="submit">
+    <h2>Create new team:<h2>
+    <input name="teamname" placeholder="Team name" type="text">
+    <input type="submit" value="Create">
   </form>
 
   <% } else { %>
@@ -42,6 +51,6 @@
       });
     });
   </script>
-
   <% } %>
+  </div>
 </html>
