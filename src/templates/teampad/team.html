@@ -11,30 +11,25 @@
     <% if (teamInfo.pads.length == 0) { %>
     None yet!
     <% } else { %>
-    <form action="/teampad/removepad" method="post">
-      <table>
-        <thead>
-          <tr>
-            <td id="name">Pad name</td>
-            <td id="controls"></td>
-          </tr>
-        </thead>
-        <tbody>
-          <% for (var i=0; i < teamInfo.pads.length; i++) { %>
-          <tr>
-            <td>
-              <% var teamName = teamInfo.pads[i].split('+')[1]; %>
-              <a href="/p/<%= teamInfo.pads[i] %>"><%= teamName %></a>
-            </td>
-            <td>
-              <input id="<%=teamInfo.pads[i]%>" type="submit"
-               name="remove" value="Remove">
-            </td>
-          </tr>
-          <% } %>
-        </tbody>
-      </table>
-    </form>
+    <table>
+      <thead>
+        <tr>
+          <td id="name">Pad name</td>
+          <td id="controls"></td>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (var i=0; i < teamInfo.pads.length; i++) { %>
+        <tr>
+          <td>
+            <% var teamName = teamInfo.pads[i].split('+')[1]; %>
+            <a href="/p/<%= teamInfo.pads[i] %>"><%= teamName %></a>
+          </td>
+          <td></td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
     <% } %>
     <form action="/teampad/createpad" method="post">
       <h2>Create pad:</h2>
@@ -45,29 +40,24 @@
     </form>
     <div class="separator"></div>
     <h2>Authors belonging to this team:</h2>
-    <form action="/teampad/removeaccount" method="post">
-      <table>
-        <thead>
-          <tr>
-            <td id="name">Account name</td>
-            <td id="controls"></td>
-          </tr>
-        </thead>
-        <tbody>
-        <% for (var i=0; i < teamInfo.accounts.length; i++) { %>
-          <tr>
-            <td>
-              <%= teamInfo.accounts[i] %>
-            </td>
-            <td>
-              <input id="<%=teamInfo.accounts[i]%>" type="submit"
-               name="remove" value="Remove">
-            </td>
-          </tr>
-        <% } %>
-        </tbody>
-      </table>
-    </form>
+    <table>
+      <thead>
+        <tr>
+          <td id="name">Account name</td>
+          <td id="controls"></td>
+        </tr>
+      </thead>
+      <tbody>
+      <% for (var i=0; i < teamInfo.accounts.length; i++) { %>
+        <tr>
+          <td>
+            <%= teamInfo.accounts[i] %>
+          </td>
+          <td></td>
+        </tr>
+      <% } %>
+      </tbody>
+    </table>
     <form action="/teampad/addaccount" method="post">
       <h2>Add account to team:</h2>
       <input name="accountname" placeholder="Account name" type="email">

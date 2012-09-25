@@ -15,31 +15,28 @@
     <% if (teamsInfo.length == 0) { %>
     None yet!
     <% } else { %>
-    <form action="/teampad/removeteam" method="post">
-      <table>
-        <thead>
-          <tr>
-            <td id="name">Team name</td>
-            <td id="controls"></td>
-          </tr>
-        </thead>
-        <tbody>
-        <% for (var i=0; i < teamsInfo.length; i++) { %>
-          <tr>
-            <td>
-              <a href="/teampad/<%= teamsInfo[i].name %>"><%= teamsInfo[i].name %></a>
-            </td>
-            <td>
-              <% if (teamsInfo[i].admins.indexOf(currentUser) != undefined) { %>
-              <input id="<%=teamsInfo[i].name%>" type="submit" name="remove"
-               value="Remove">
-              <% } %>
-            </td>
-          </tr>
-        <% } %>
-        </tbody>
-      </table>
-    </form>
+    <table>
+      <thead>
+        <tr>
+          <td id="name">Team name</td>
+          <td id="controls"></td>
+        </tr>
+      </thead>
+      <tbody>
+      <% for (var i=0; i < teamsInfo.length; i++) { %>
+        <tr>
+          <td>
+            <a href="/teampad/<%= teamsInfo[i].name %>"><%= teamsInfo[i].name %></a>
+          </td>
+          <td>
+            <% if (teamsInfo[i].admins.indexOf(currentUser) != undefined) { %>
+            [admin]
+            <% } %>
+          </td>
+        </tr>
+      <% } %>
+      </tbody>
+    </table>
     <% } %>
     <div class="separator"></div>
     <form action="/teampad/createteam" method="post">
