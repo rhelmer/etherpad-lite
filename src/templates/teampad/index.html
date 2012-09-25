@@ -12,40 +12,21 @@
     <div class="separator"></div>
 
     <h2>Teams you are a member of</h2>
-    <% if (teamsInfo.length == 0) { %>
-    None yet!
-    <% } else { %>
-    <form action="/teampad/removeteam" method="post">
-      <table>
-        <thead>
-          <tr>
-            <td id="name">Team name</td>
-            <td id="controls"></td>
-          </tr>
-        </thead>
-        <tbody>
-        <% for (var i=0; i < teamsInfo.length; i++) { %>
-          <tr>
-            <td>
-              <a href="/teampad/<%= teamsInfo[i].name %>"><%= teamsInfo[i].name %></a>
-            </td>
-            <td>
-              <% if (teamsInfo[i].admins.indexOf(currentUser) != undefined) { %>
-              <input id="<%=teamsInfo[i].name%>" type="submit" name="remove"
-               value="Remove">
-              <% } %>
-            </td>
-          </tr>
-        <% } %>
-        </tbody>
-      </table>
-    </form>
-    <% } %>
-    <div class="separator"></div>
+    <ul>
+      <% if (teamsInfo.length == 0) { %>
+      None yet!
+      <% } %>
+      <% for (var i=0; i < teamsInfo.length; i++) { %>
+      <li>
+        <a href="/teampad/<%= teamsInfo[i].name %>"><%= teamsInfo[i].name %></a>
+      </li>
+      <% } %>
+    </ul>
+      <div class="separator"></div>
     <form action="/teampad/createteam" method="post">
       <h2>Create new team:<h2>
       <input name="teamname" placeholder="Team name" type="text">
-      <input type="submit" name="create" value="Create">
+      <input type="submit" value="Create">
     </form>
   
     <% } else { %>

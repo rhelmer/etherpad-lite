@@ -200,8 +200,7 @@ exports.expressCreateServer = function (hook_name, args, cb) {
 
       res.send(eejs.require('ep_etherpad-lite/templates/teampad/index.html',
                 { teamsInfo: teamsInfo,
-                  signedIn: signedIn,
-                  currentUser: currentUser}));
+                  signedIn: signedIn}));
     });
   });
 
