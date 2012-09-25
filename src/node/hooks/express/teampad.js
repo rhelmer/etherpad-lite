@@ -3,6 +3,7 @@ var express = require('express'),
     eejs = require('ep_etherpad-lite/node/eejs'),
     teamManager = require('ep_etherpad-lite/node/db/TeamManager'),
     sessionManager = require('ep_etherpad-lite/node/db/SessionManager'),
+    padManager = require('ep_etherpad-lite/node/db/PadManager'),
     https = require('https');
 
 exports.expressCreateServer = function (hook_name, args, cb) {
@@ -52,73 +53,107 @@ exports.expressCreateServer = function (hook_name, args, cb) {
   });
 
   args.app.post('/teampad/createteam', function(req, res) {
-    var sessionID = req.cookies.express_sid;
-    var currentUser = null;
-    var signedIn = false;
+    var sessionID = req.cookies.express_sid,
+        currentUser = null,
+        signedIn = false,
+        teamName = null,
+        rawTeamName = req.param('teamname', null);
 
-    sessionManager.getSessionInfo(sessionID, function(err, result) {
-      if (err) {
-        console.log(err);
-      } else {
-        currentUser = result.account;
-        signedIn = true;
-      }
-    });
-
-
-    var teamName = req.param('teamname', null);
-    teamManager.createTeam(teamName, [], [currentUser], [currentUser],
-      function(err, teamID) {
-        console.log(teamID + ' created for ' + teamName);
-      });
-    res.redirect('/teampad');
-  });
-
-  args.app.post('/teampad/createpad', function(req, res) {
-    var sessionID = req.cookies.express_sid;
-    var currentUser = null;
-    var signedIn = false;
-
-    sessionManager.getSessionInfo(sessionID, function(err, result) {
-      if (err) {
-        console.log(err);
-        res.redirect('/teampad');
-      } else {
-        currentUser = result.account;
-        signedIn = true;
-      }
-    });
-
-
-    var teamName = req.param('teamname', null);
-    var teamID = req.param('teamID', null);
-    var padName = req.param('padname', null);
-    teamManager.createTeamPad(teamName, teamID, padName, 'super sekrit!',
-      function(err, teamID) {
-        console.log(padName + ' created for ' + teamName);
-      });
-    res.redirect('/teampad/' + teamName);
-  });
-
-  args.app.post('/teampad/addaccount', function(req, res) {
-    var sessionID = req.cookies.express_sid;
-    var currentUser = null;
-    var signedIn = false;
-
-    async.series([
+    async.waterfall([
       function(callback) {
         sessionManager.getSessionInfo(sessionID, callback);
       },
       function(result, callback) {
         currentUser = result.account;
+        signedIn = true;
+        callback();
+      },
+      function(callback) {
+        console.log('about to sanitize ' + rawTeamName);
+        padManager.sanitizePadId(rawTeamName, function(teamName) {
+          callback(null, teamName);
+        }) 
+      },
+      function(result, callback) {
+        teamName = result;
+        console.log('sanitized ' + teamName);
+        teamManager.createTeam(teamName, [], [currentUser], [currentUser],
+          callback);
+      },
+      function(teamID, callback) {
+        console.log(teamID + ' created for ' + teamName);
+        res.redirect('/teampad');
+      }
+    ], function(err) {
+      console.log('error: ' + err);
+      res.redirect('/teampad');
+    });
+  });
 
-        var teamID = req.param('teamID', null);
-        var teamName = req.param('teamname', null);
-        var account = req.param('accountname', null);
-        console.log('teamID: ' + teamID);
-        teamManager.addAccountToTeam(teamID, account, function(err, team) {
-          console.log(account+ ' added to ' + teamID);
+  args.app.post('/teampad/createpad', function(req, res) {
+    var sessionID = req.cookies.express_sid;
+
+    var teamName = null,
+        padName = null,
+        currentUser = null,
+        signedIn = false,
+        teamID = req.param('teamID', null),
+        rawTeamName = req.param('teamname', null),
+        rawPadName = req.param('padname', null);
+
+    async.waterfall([
+      function(callback) {
+        sessionManager.getSessionInfo(sessionID, callback);
+      },
+      function(result, callback) {
+        currentUser = result.account;
+        signedIn = true;
+        padManager.sanitizePadId(rawTeamName, function(teamName) {
+          callback(null, teamName);
         });
+      },
+      function(result, callback) {
+        teamName = result;
+        padManager.sanitizePadId(rawPadName, function(padName) {
+          callback(null, padName);
+        });
+      },
+      function(result, callback) {
+        padName = result;
+        teamManager.createTeamPad(teamName, teamID, padName, 'super sekrit!',
+          callback);
+      },
+      function(callback) {
+        console.log(padName + ' created for ' + teamName);
+        res.redirect('/teampad/' + teamName);
+      }
+    ], function(err) {
+      console.log(err);
+      res.redirect('/teampad');
+    });
+  });
+
+  args.app.post('/teampad/addaccount', function(req, res) {
+    var sessionID = req.cookies.express_sid,
+        currentUser = null,
+        signedIn = false,
+        teamID = req.param('teamID', null),
+        account = req.param('accountname', null);
+
+    async.waterfall([
+      function(callback) {
+        sessionManager.getSessionInfo(sessionID, callback);
+      },
+      function(result, callback) {
+        currentUser = result.account;
+        padManager.sanitizePadId(req.param('teamname', null), callback);
+      },
+      function(teamName, callback) {
+        console.log('teamID: ' + teamID);
+        teamManager.addAccountToTeam(teamID, account, callback);
+      },
+      function(team, callback) {
+        console.log(account+ ' added to ' + teamID);
         res.redirect('/teampad/' + teamName);
       },
     ], function(err) {
