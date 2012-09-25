@@ -8,6 +8,14 @@ var  _ = require("underscore");
 
 var server;
 var serverName;
+var port;
+
+// Override port setting if provided in PORT environment variable
+if (process.env.PORT) {
+  port = process.env.PORT;
+} else {
+  port = settings.port;
+}
 
 exports.createServer = function () {
   //try to get the git version
@@ -31,9 +39,9 @@ exports.createServer = function () {
 
   exports.restartServer();
 
-  console.log("You can access your Etherpad-Lite instance at http://" + settings.ip + ":" + settings.port + "/");
+  console.log("You can access your Etherpad-Lite instance at http://" + settings.ip + ":" + port + "/");
   if(!_.isEmpty(settings.users)){
-    console.log("The plugin admin page is at http://" + settings.ip + ":" + settings.port + "/admin/plugins");
+    console.log("The plugin admin page is at http://" + settings.ip + ":" + port + "/admin/plugins");
   }
   else{
     console.warn("Admin username and password not set in settings.json.  To access admin please uncomment and edit 'users' in settings.json");
@@ -59,5 +67,5 @@ exports.restartServer = function () {
   });
   hooks.callAll("expressCreateServer", {"app": server});
 
-  server.listen(settings.port, settings.ip);
+  server.listen(port, settings.ip);
 }
