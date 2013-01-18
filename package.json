@@ -2,7 +2,8 @@
   "name": "etherpad-lite",
   "version": "0.0.1",
   "dependencies": {
-    "ep_etherpad-lite": "https://github.com/rhelmer/ep_etherpad-lite.git#70e800e"
+    "ep_etherpad-lite": "git://github.com/rhelmer/ep_etherpad-lite.git#70e800e"
+   }
   },
   "engines": {
     "node" : ">=0.6.0",
