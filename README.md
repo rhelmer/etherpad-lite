@@ -27,13 +27,14 @@ documented codebase makes it easier for developers to improve the code and contr
 </table> 
 
 
-Etherpad Lite is designed to be easily embeddable and provides a [HTTP API](https://github.com/Pita/etherpad-lite/wiki/HTTP-API) 
-that allows your web application to manage pads, users and groups. It is recommended to use the client implementations available for this API, listed on [this wiki page](https://github.com/Pita/etherpad-lite/wiki/HTTP-API-client-libraries).
-There is also a [jQuery plugin](https://github.com/johnyma22/etherpad-lite-jquery-plugin) that helps you to embed Pads into your website
+Etherpad Lite is designed to be easily embeddable and provides a [HTTP API](https://github.com/ether/etherpad-lite/wiki/HTTP-API) 
+that allows your web application to manage pads, users and groups. It is recommended to use the [available client implementations](https://github.com/ether/etherpad-lite/wiki/HTTP-API-client-libraries) in order to interact with this API. There is also a [jQuery plugin](https://github.com/johnyma22/etherpad-lite-jquery-plugin) that helps you to embed Pads into your website.
+There's also a full-featured plugin framework, allowing you to easily add your own features.
+Finally, Etherpad Lite comes with translations into tons of different languages!
 
 **Visit [beta.etherpad.org](http://beta.etherpad.org) to test it live**
 
-Also, check out the **[FAQ](https://github.com/Pita/etherpad-lite/wiki/FAQ)**, really!
+Also, check out the **[FAQ](https://github.com/ether/etherpad-lite/wiki/FAQ)**, really!
 
 # Installation
 
@@ -42,7 +43,7 @@ Also, check out the **[FAQ](https://github.com/Pita/etherpad-lite/wiki/FAQ)**, r
 ### Prebuilt windows package
 This package works out of the box on any windows machine, but it's not very useful for developing purposes...
 
-1. Download the windows package <https://github.com/Pita/etherpad-lite/downloads>
+1. Download the windows package <https://github.com/ether/etherpad-lite/downloads>
 2. Extract the folder
 
 Now, run `start.bat` and open <http://localhost:9001> in your browser. You like it? [Next steps](#next-steps).
@@ -51,8 +52,8 @@ Now, run `start.bat` and open <http://localhost:9001> in your browser. You like 
 You'll need [node.js](http://nodejs.org) and (optionally, though recommended) git.
 
 1. Grab the source, either
-  - download <https://github.com/Pita/etherpad-lite/zipball/master>
-  - or `git clone https://github.com/Pita/etherpad-lite.git` (for this you need git, obviously)
+  - download <https://github.com/ether/etherpad-lite/zipball/master>
+  - or `git clone https://github.com/ether/etherpad-lite.git` (for this you need git, obviously)
 2. start `bin\installOnWindows.bat`
 
 Now, run `start.bat` and open <http://localhost:9001> in your browser.
@@ -66,14 +67,14 @@ You'll need gzip, git, curl, libssl develop libraries, python and gcc.
 *For Debian/Ubuntu*: `apt-get install gzip git-core curl python libssl-dev pkg-config build-essential`  
 *For Fedora/CentOS*: `yum install gzip git-core curl python openssl-devel && yum groupinstall "Development Tools"`
 
-Additionally, you'll need [node.js](http://nodejs.org).
+Additionally, you'll need [node.js](http://nodejs.org) installed, Ideally the latest stable version, be careful of installing nodejs from apt.
 
 **As any user (we recommend creating a separate user called etherpad-lite):**
 
-1. Move to a folder where you want to install Etherpad Lite. Clone the git repository `git clone git://github.com/Pita/etherpad-lite.git`
+1. Move to a folder where you want to install Etherpad Lite. Clone the git repository `git clone git://github.com/ether/etherpad-lite.git`
 2. Change into the new directory containing the cloned source code `cd etherpad-lite`
 
-Now, run `bin\run.sh` and open <http://127.0.0.1:9001> in your browser. 
+Now, run `bin/run.sh` and open <http://127.0.0.1:9001> in your browser. 
 
 Update to the latest version with `git pull origin`. The next start with bin/run.sh will update the dependencies.
 
@@ -87,7 +88,7 @@ You can modify the settings in `settings.json`. (If you need to handle multiple 
 You should use a dedicated database such as "mysql", if you are planning on using etherpad-lite in a production environment, since the "dirtyDB" database driver is only for testing and/or development purposes.
 
 ## Helpful resources
-The [wiki](https://github.com/Pita/etherpad-lite/wiki) is your one-stop resource for Tutorials and How-to's, really check it out! Also, feel free to improve these wiki pages.
+The [wiki](https://github.com/ether/etherpad-lite/wiki) is your one-stop resource for Tutorials and How-to's, really check it out! Also, feel free to improve these wiki pages.
 
 Documentation can be found in `docs/`.
 
@@ -100,14 +101,14 @@ If you're new to node.js, start with Ryan Dahl's [Introduction to Node.js](http:
 
 You can debug Etherpad lite using `bin/debugRun.sh`.
 
-If you want to find out how Etherpad's `Easysync` works (the library that makes it really realtime), start with this [PDF](https://github.com/Pita/etherpad-lite/raw/master/doc/easysync/easysync-full-description.pdf) (complex, but worth reading).
+If you want to find out how Etherpad's `Easysync` works (the library that makes it really realtime), start with this [PDF](https://github.com/ether/etherpad-lite/raw/master/doc/easysync/easysync-full-description.pdf) (complex, but worth reading).
 
 ## Getting started
 You know all this and just want to know how you can help?
 
-Look at the [TODO list](https://github.com/Pita/etherpad-lite/wiki/TODO) and our [Issue tracker](https://github.com/Pita/etherpad-lite/issues). (Please consider using [jshint](http://www.jshint.com/about/), if you plan to contribute code.)
+Look at the [TODO list](https://github.com/ether/etherpad-lite/wiki/TODO) and our [Issue tracker](https://github.com/ether/etherpad-lite/issues). (Please consider using [jshint](http://www.jshint.com/about/), if you plan to contribute code.)
 
-Also, and most importantly, read our [**Developer Guidelines**](https://github.com/Pita/etherpad-lite/wiki/Developer-Guidelines), really!
+Also, and most importantly, read our [**Developer Guidelines**](https://github.com/ether/etherpad-lite/wiki/Developer-Guidelines), really!
 
 # Get in touch
 Join the [mailinglist](http://groups.google.com/group/etherpad-lite-dev) and make some noise on our freenode irc channel [#etherpad-lite-dev](http://webchat.freenode.net?channels=#etherpad-lite-dev)!
