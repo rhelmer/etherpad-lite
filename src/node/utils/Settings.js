@@ -47,7 +47,7 @@ exports.faviconTimeslider = "../../" + exports.favicon;
 /**
  * The IP ep-lite should listen to
  */
-exports.ip = "0.0.0.0";
+exports.ip = process.env.VCAP_APP_HOST || "0.0.0.0";
   
 /**
  * The Port ep-lite should listen to
@@ -72,7 +72,22 @@ exports.dbType = "dirty";
 /**
  * This setting is passed with dbType to ueberDB to set up the database
  */
-exports.dbSettings = { "filename" : path.join(exports.root, "dirty.db") };
+if (process.env.VCAP_SERVICES)
+{
+  var vcap_services = JSON.parse(process.env.VCAP_SERVICES);
+  // FIXME hardcoded mysql.. dbType is not imported til the end :(
+  var db = vcap_services["mysql"][0]["credentials"];
+  exports.dbSettings = {
+    "user"    : db["user"],
+    "host"    : db["hostname"],
+    "password": db["password"],
+    "database": db["name"]
+  }
+}
+else
+{
+  exports.dbSettings = { "filename" : path.join(exports.root, "dirty.db") };
+}
 
 /**
  * The default Text of a new pad
