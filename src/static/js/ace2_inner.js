@@ -154,12 +154,8 @@ function Ace2Inner(){
   var dmesg = noop;
   window.dmesg = noop;
 
-  // Ugly hack for Firefox 18
-  // get the timeout and interval methods from the parent iframe
-  setTimeout = parent.setTimeout;
-  clearTimeout = parent.clearTimeout;
-  setInterval = parent.setInterval;
-  clearInterval = parent.clearInterval;
+
+  var scheduler = parent; // hack for opera required
 
   var textFace = 'monospace';
   var textSize = 12;
@@ -179,7 +175,7 @@ function Ace2Inner(){
     parentDynamicCSS = makeCSSManager("dynamicsyntax", true);
   }
 
-  var changesetTracker = makeChangesetTracker(rep.apool, {
+  var changesetTracker = makeChangesetTracker(scheduler, rep.apool, {
     withCallbacks: function(operationName, f)
     {
       inCallStackIfNecessary(operationName, function()
@@ -599,7 +595,7 @@ function Ace2Inner(){
     doesWrap = newVal;
     var dwClass = "doesWrap";
     setClassPresence(root, "doesWrap", doesWrap);
-    setTimeout(function()
+    scheduler.setTimeout(function()
     {
       inCallStackIfNecessary("setWraps", function()
       {
@@ -639,7 +635,7 @@ function Ace2Inner(){
     textFace = face;
     root.style.fontFamily = textFace;
     lineMetricsDiv.style.fontFamily = textFace;
-    setTimeout(function()
+    scheduler.setTimeout(function()
     {
       setUpTrackingCSS();
     }, 0);
@@ -652,7 +648,7 @@ function Ace2Inner(){
     root.style.lineHeight = textLineHeight() + "px";
     sideDiv.style.lineHeight = textLineHeight() + "px";
     lineMetricsDiv.style.fontSize = textSize + "px";
-    setTimeout(function()
+    scheduler.setTimeout(function()
     {
       setUpTrackingCSS();
     }, 0);
@@ -963,7 +959,11 @@ function Ace2Inner(){
       styled: setStyled,
       textface: setTextFace,
       textsize: setTextSize,
-      rtlistrue: setClassPresenceNamed(root, "rtl")
+      rtlistrue: function(value) {
+        setClassPresence(root, "rtl", value)
+        setClassPresence(root, "ltr", !value)
+        document.documentElement.dir = value? 'rtl' : 'ltr'
+      }
     };
     
     var setter = setters[key.toLowerCase()];
@@ -1090,7 +1090,7 @@ function Ace2Inner(){
     {
       if (scheduledTimeout)
       {
-        clearTimeout(scheduledTimeout);
+        scheduler.clearTimeout(scheduledTimeout);
         scheduledTimeout = null;
       }
     }
@@ -1101,7 +1101,7 @@ function Ace2Inner(){
       scheduledTime = time;
       var delay = time - now();
       if (delay < 0) delay = 0;
-      scheduledTimeout = setTimeout(callback, delay);
+      scheduledTimeout = scheduler.setTimeout(callback, delay);
     }
 
     function callback()
@@ -1626,9 +1626,17 @@ function Ace2Inner(){
         lines = ccData.lines;
         var lineAttribs = ccData.lineAttribs;
         var linesWrapped = ccData.linesWrapped;
+        var scrollToTheLeftNeeded = false;
 
         if (linesWrapped > 0)
         {
+          if(!browser.ie){
+            // chrome decides in it's infinite wisdom that its okay to put the browsers visisble window in the middle of the span
+            // an outcome of this is that the first chars of the string are no longer visible to the user..  Yay chrome..
+            // Move the browsers visible area to the left hand side of the span
+            // Firefox isn't quite so bad, but it's still pretty quirky.
+            var scrollToTheLeftNeeded = true;
+          }
           // console.log("Editor warning: " + linesWrapped + " long line" + (linesWrapped == 1 ? " was" : "s were") + " hard-wrapped into " + ccData.numLinesAfter + " lines.");
         }
 
@@ -1695,6 +1703,10 @@ function Ace2Inner(){
       //dmesg(htmlPrettyEscape(htmlForRemovedChild(n)));
       //console.log("removed: "+id);
     });
+
+    if(scrollToTheLeftNeeded){ // needed to stop chrome from breaking the ui when long strings without spaces are pasted
+      $("#innerdocbody").scrollLeft(0);
+    }
 
     p.mark("findsel");
     // if the nodes that define the selection weren't encountered during
@@ -1901,7 +1913,7 @@ function Ace2Inner(){
       var prevLine = rep.lines.prev(thisLine);
       var prevLineText = prevLine.text;
       var theIndent = /^ *(?:)/.exec(prevLineText)[0];
-      if (/[\[\(\{]\s*$/.exec(prevLineText)) theIndent += THE_TAB;
+      if (/[\[\(\:\{]\s*$/.exec(prevLineText)) theIndent += THE_TAB;
       var cs = Changeset.builder(rep.lines.totalWidth()).keep(
       rep.lines.offsetOfIndex(lineNum), lineNum).insert(
       theIndent, [
@@ -3291,7 +3303,7 @@ function Ace2Inner(){
       listType = /([a-z]+)([12345678])/.exec(listType);
       var type  = listType[1];
       var level = Number(listType[2]);
-      
+
       //detect empty list item; exclude indentation
       if(text === '*' && type !== "indent")
       {
@@ -3321,8 +3333,10 @@ function Ace2Inner(){
 
   function doIndentOutdent(isOut)
   {
-    if (!(rep.selStart && rep.selEnd) ||
-        ((rep.selStart[0] == rep.selEnd[0]) && (rep.selStart[1] == rep.selEnd[1]) &&  rep.selEnd[1] > 1))
+    if (!((rep.selStart && rep.selEnd) ||
+        ((rep.selStart[0] == rep.selEnd[0]) && (rep.selStart[1] == rep.selEnd[1]) &&  rep.selEnd[1] > 1)) &&
+        (isOut != true)
+       )
     {
       return false;
     }
@@ -3330,7 +3344,6 @@ function Ace2Inner(){
     var firstLine, lastLine;
     firstLine = rep.selStart[0];
     lastLine = Math.max(firstLine, rep.selEnd[0] - ((rep.selEnd[1] === 0) ? 1 : 0));
-
     var mods = [];
     for (var n = firstLine; n <= lastLine; n++)
     {
@@ -3543,7 +3556,6 @@ function Ace2Inner(){
   {
     // if (DEBUG && window.DONT_INCORP) return;
     if (!isEditable) return;
-
     var type = evt.type;
     var charCode = evt.charCode;
     var keyCode = evt.keyCode;
@@ -3565,9 +3577,14 @@ function Ace2Inner(){
     var isModKey = ((!charCode) && ((type == "keyup") || (type == "keydown")) && (keyCode == 16 || keyCode == 17 || keyCode == 18 || keyCode == 20 || keyCode == 224 || keyCode == 91));
     if (isModKey) return;
 
+    // If the key is a keypress and the browser is opera and the key is enter, do nothign at all as this fires twice.
+    if (keyCode == 13 && browser.opera && (type == "keypress")){
+      return; // This stops double enters in Opera but double Tabs still show on single tab keypress, adding keyCode == 9 to this doesn't help as the event is fired twice
+    }
+
     var specialHandled = false;
-    var isTypeForSpecialKey = ((browser.msie || browser.safari) ? (type == "keydown") : (type == "keypress"));
-    var isTypeForCmdKey = ((browser.msie || browser.safari) ? (type == "keydown") : (type == "keypress"));
+    var isTypeForSpecialKey = ((browser.msie || browser.safari || browser.chrome) ? (type == "keydown") : (type == "keypress"));
+    var isTypeForCmdKey = ((browser.msie || browser.safari || browser.chrome) ? (type == "keydown") : (type == "keypress"));
 
     var stopped = false;
 
@@ -3618,7 +3635,7 @@ function Ace2Inner(){
           evt.preventDefault();
           doReturnKey();
           //scrollSelectionIntoView();
-          setTimeout(function()
+          scheduler.setTimeout(function()
           {
             outerWin.scrollBy(-100, 0);
           }, 0);
@@ -3704,7 +3721,7 @@ function Ace2Inner(){
           var isPageDown = evt.which === 34;
           var isPageUp = evt.which === 33;
 
-          setTimeout(function(){
+          scheduler.setTimeout(function(){
             var newVisibleLineRange = getVisibleLineRange();
             var linesCount = rep.lines.length();
 
@@ -3730,6 +3747,37 @@ function Ace2Inner(){
             updateBrowserSelectionFromRep();
           }, 200);
         }
+
+        /* Attempt to apply some sanity to cursor handling in Chrome after a copy / paste event
+           We have to do this the way we do because rep. doesn't hold the value for keyheld events IE if the user
+           presses and holds the arrow key */
+        if((evt.which == 37 || evt.which == 38 || evt.which == 39 || evt.which == 40) && $.browser.chrome){
+
+          var newVisibleLineRange = getVisibleLineRange(); // get the current visible range -- This works great.
+          var lineHeight = textLineHeight(); // what Is the height of each line?
+          var myselection = document.getSelection(); // get the current caret selection, can't use rep. here because that only gives us the start position not the current
+          var caretOffsetTop = myselection.focusNode.parentNode.offsetTop; // get the carets selection offset in px IE 214
+
+          if(caretOffsetTop){ // sometimes caretOffsetTop bugs out and returns 0, not sure why, possible Chrome bug?  Either way if it does we don't wanna mess with it
+            var lineNum = Math.round(caretOffsetTop / lineHeight) ; // Get the current Line Number IE 84
+            newVisibleLineRange[1] = newVisibleLineRange[1]-1;
+            var caretIsVisible = (lineNum > newVisibleLineRange[0] && lineNum < newVisibleLineRange[1]); // Is the cursor in the visible Range IE ie 84 > 14 and 84 < 90?
+
+            if(!caretIsVisible){ // is the cursor no longer visible to the user?
+              // Oh boy the caret is out of the visible area, I need to scroll the browser window to lineNum.
+              // Get the new Y by getting the line number and multiplying by the height of each line.
+              if(evt.which == 37 || evt.which == 38){ // If left or up
+                var newY = lineHeight * (lineNum -1); // -1 to go to the line above
+              }else if(evt.which == 39 || evt.which == 40){ // if down or right
+                var newY = getScrollY() + (lineHeight*3); // the offset and one additional line
+              }
+              setScrollY(newY); // set the scroll height of the browser
+            }
+
+          }
+
+        }
+
       }
 
       if (type == "keydown")
@@ -3835,7 +3883,6 @@ function Ace2Inner(){
     selection.endPoint = getPointForLineAndChar(se);
 
     selection.focusAtStart = !! rep.selFocusAtStart;
-
     setSelection(selection);
   }
 
@@ -4761,7 +4808,7 @@ function Ace2Inner(){
 
     });
 
-    setTimeout(function()
+    scheduler.setTimeout(function()
     {
       parent.readyFunc(); // defined in code that sets up the inner iframe
     }, 0);
@@ -5209,7 +5256,7 @@ function Ace2Inner(){
         documentAttributeManager: documentAttributeManager
       });
     
-      setTimeout(function()
+      scheduler.setTimeout(function()
       {
         parent.readyFunc(); // defined in code that sets up the inner iframe
       }, 0);
