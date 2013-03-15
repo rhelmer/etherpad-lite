@@ -56,8 +56,7 @@ exports.expressCreateServer = function (hook_name, args, cb) {
     var sessionID = req.signedCookies.express_sid,
         currentUser = null,
         signedIn = false,
-        teamName = null,
-        rawTeamName = req.param('teamname', null);
+        teamName = req.param('teamname', null);
 
     async.waterfall([
       function(callback) {
@@ -65,22 +64,15 @@ exports.expressCreateServer = function (hook_name, args, cb) {
       },
       function(result, callback) {
         currentUser = result.account;
-        signedIn = true;
-        callback();
-      },
-      function(callback) {
-        console.log('about to sanitize ' + rawTeamName);
-        padManager.sanitizePadId(rawTeamName, function(teamName) {
-          callback(null, teamName);
-        }) 
+        teamManager.checkTeamAccess(teamName, currentUser, callback);
       },
       function(result, callback) {
-        teamName = result;
-        console.log('sanitized ' + teamName);
+        console.log(result);
         teamManager.createTeam(teamName, [], [currentUser], [currentUser],
           callback);
       },
       function(teamID, callback) {
+        console.log(teamID);
         console.log(teamID + ' created for ' + teamName);
         res.redirect('/teampad');
       }
@@ -98,8 +90,8 @@ exports.expressCreateServer = function (hook_name, args, cb) {
         currentUser = null,
         signedIn = false,
         teamID = req.param('teamID', null),
-        rawTeamName = req.param('teamname', null),
-        rawPadName = req.param('padname', null);
+        teamName = req.param('teamname', null),
+        padName = req.param('padname', null);
 
     async.waterfall([
       function(callback) {
@@ -107,19 +99,10 @@ exports.expressCreateServer = function (hook_name, args, cb) {
       },
       function(result, callback) {
         currentUser = result.account;
-        signedIn = true;
-        padManager.sanitizePadId(rawTeamName, function(teamName) {
-          callback(null, teamName);
-        });
+        teamManager.checkTeamAccess(teamName, currentUser, callback);
       },
       function(result, callback) {
-        teamName = result;
-        padManager.sanitizePadId(rawPadName, function(padName) {
-          callback(null, padName);
-        });
-      },
-      function(result, callback) {
-        padName = result;
+        console.log(result);
         teamManager.createTeamPad(teamName, teamID, padName, 'super sekrit!',
           callback);
       },
@@ -137,9 +120,8 @@ exports.expressCreateServer = function (hook_name, args, cb) {
     var sessionID = req.signedCookies.express_sid,
         currentUser = null,
         signedIn = false,
-        teamName = null,
         teamID = req.param('teamID', null),
-        rawTeamName = req.param('teamname', null),
+        teamName = req.param('teamname', null),
         account = req.param('accountname', null);
 
     async.waterfall([
@@ -148,13 +130,10 @@ exports.expressCreateServer = function (hook_name, args, cb) {
       },
       function(result, callback) {
         currentUser = result.account;
-        padManager.sanitizePadId(rawTeamName, function(teamName) {
-          callback(null, teamName);
-        });
+        teamManager.checkTeamAccess(teamName, currentUser, callback);
       },
       function(result, callback) {
-        teamName = result;
-        console.log('teamID: ' + teamID);
+        console.log(result);
         teamManager.addAccountToTeam(teamID, account, callback);
       },
       function(result, callback) {
@@ -216,7 +195,6 @@ exports.expressCreateServer = function (hook_name, args, cb) {
         res.redirect('/teampad');
       } else {
         currentUser = result.account;
-        signedIn = true;
 
         var teamName = req.path.split('/')[2];
         var teamInfo = {
@@ -226,25 +204,17 @@ exports.expressCreateServer = function (hook_name, args, cb) {
           teamID: []
         };
 
-        // TODO an index for finding pads/accounts by team would make this
-        //    *way* faster and easier...
-        teamManager.listAllTeams(function(err, teams) {
-          for (var team in teams.teamIDs) {
-            teamID = teams.teamIDs[team];
-            teamManager.listInfo(teamID, function(err, info) {
-              if (info.name) {
-                if (teamName === info.name) {
-                  teamInfo = info;
-                  teamInfo.teamID = teamID;
-                }
-              }
-            });
-          } 
-    
-          res.header('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
+        teamManager.checkTeamAccess(teamName, currentUser, function(result){
+          if (result) {
+            res.header('Cache-Control', 'no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0');
 
-          res.send(eejs.require('ep_etherpad-lite/templates/teampad/team.html',
-                    {teamInfo: teamInfo}));
+            res.send(eejs.require('ep_etherpad-lite/templates/teampad/team.html',
+                     {teamInfo: teamInfo}));
+          } else {
+            console.log('access denied to ' + teamName + ' for user ' + currentUser);
+            res.redirect('/teampad');
+
+          }
         });
       }
     });

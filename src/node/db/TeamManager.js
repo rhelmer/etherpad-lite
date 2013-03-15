@@ -4,6 +4,7 @@
 
 /*
  * 2011 Peter 'Pita' Martischka (Primary Technology Ltd)
+ * 2013 Robert Helmer <rhelmer@rhelmer.org> (Mozilla)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -191,7 +192,6 @@ exports.addAccountToTeam = function(teamID, account, callback)
     //team does not exist
     if(exists == false)
     {
-      console.log('debug1: ' + teamID);
       callback(new customError("teamID does not exist","apierror"));
     }
     //team exists, let's get the info
@@ -206,6 +206,44 @@ exports.addAccountToTeam = function(teamID, account, callback)
         db.set("team:" + teamID, result);
         callback(null, result);
       });
+    }
+  });
+}
+
+exports.checkTeamAccess = function(teamName, currentUser, callback) {
+  var teamInfo = null;
+  // TODO an index for finding pads/accounts by team would make this
+  //    *way* faster and easier...
+  exports.listAllTeams(function(err, teams) {
+    if(ERR(err, callback)) return;
+
+    for (var team in teams.teamIDs) {
+      teamID = teams.teamIDs[team];
+      console.log('teamID: '+ teamID);
+      exports.listInfo(teamID, function(err, info) {
+        console.log('teamName: ' + teamName);
+        console.log('info: ' + info.name);
+        if (info.name) {
+          if (teamName === info.name) {
+            teamInfo = info;
+            teamInfo.teamID = teamID;
+          }
+        }
+      });
+    } 
+  });
+
+  exports.doesTeamExist(teamName, function(err, exists) {
+    if(!exists) {
+      // new team name, continue
+      callback(null, true);
+    } else {
+      if (teamInfo.accounts.indexOf(currentUser) == -1) {
+        console.log('WARN user ' + currentUser + ' not in team ' + teamName);
+        callback(null, false);
+      } else {
+        callback(null, false);
+      }
     }
   });
 }
