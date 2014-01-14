@@ -1,5 +1,7 @@
-name: etherpad-lite
+name: pad
 instances: 1
 framework:
   type: node
 mem: 128
+services:
+  mysql-pad: mysql
