@@ -1,4 +1,4 @@
-name: pad
+name: pad-next
 instances: 1
 framework:
   type: node
