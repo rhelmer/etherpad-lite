@@ -1,5 +1,5 @@
 /**
- * The Settings Modul reads the settings out of settings.json and provides 
+ * The Settings Modul reads the settings out of settings.json and provides
  * this information to the other modules
  */
 
@@ -24,7 +24,7 @@ var os = require("os");
 var path = require('path');
 var argv = require('./Cli').argv;
 var npm = require("npm/lib/npm.js");
-var vm = require('vm');
+var jsonminify = require("jsonminify");
 var log4js = require("log4js");
 var randomString = require("./randomstring");
 
@@ -93,6 +93,26 @@ else
  * The default Text of a new pad
  */
 exports.defaultPadText = "Welcome to Etherpad!\n\nThis pad text is synchronized as you type, so that everyone viewing this page sees the same text. This allows you to collaborate seamlessly on documents!\n\nEtherpad on Github: http:\/\/j.mp/ep-lite\n";
+
+/**
+ * The toolbar buttons and order.
+ */
+exports.toolbar = {
+  left: [
+    ["bold", "italic", "underline", "strikethrough"],
+    ["orderedlist", "unorderedlist", "indent", "outdent"],
+    ["undo", "redo"],
+    ["clearauthorship"]
+  ],
+  right: [
+    ["importexport", "timeslider", "savedrevision"],
+    ["settings", "embed"],
+    ["showusers"]
+  ],
+  timeslider: [
+    ["timeslider_export", "timeslider_returnToPad"]
+  ]
+}
 
 /**
  * A flag that requires any user to have a valid session (via the api) before accessing a pad
@@ -181,8 +201,8 @@ exports.reloadSettings = function reloadSettings() {
   var settings;
   try {
     if(settingsStr) {
-      settings = vm.runInContext('exports = '+settingsStr, vm.createContext(), "settings.json");
-      settings = JSON.parse(JSON.stringify(settings)); // fix objects having constructors of other vm.context
+      settingsStr = jsonminify(settingsStr).replace(",]","]").replace(",}","}");
+      settings = JSON.parse(settingsStr);
     }
   }catch(e){
     console.error('There was an error processing your settings.json file: '+e.message);
@@ -210,7 +230,7 @@ exports.reloadSettings = function reloadSettings() {
       console.warn("Unknown Setting: '" + i + "'. This setting doesn't exist or it was removed");
     }
   }
-  
+
   log4js.configure(exports.logconfig);//Configure the logging appenders
   log4js.setGlobalLogLevel(exports.loglevel);//set loglevel
   log4js.replaceConsole();
